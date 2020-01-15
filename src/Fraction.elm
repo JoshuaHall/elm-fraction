@@ -81,7 +81,7 @@ invalidDenominator =
 -}
 create : Int -> Int -> Maybe Fraction
 create numerator denominator =
-    if denominator == invalidDenominator || numerator < minimumSupportedInt || numerator < minimumSupportedInt then
+    if denominator == invalidDenominator || numerator < minimumSupportedInt || denominator < minimumSupportedInt then
         Nothing
 
     else
