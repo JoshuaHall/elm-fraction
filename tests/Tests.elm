@@ -1,7 +1,7 @@
 module Tests exposing (fractionModule, testsModule)
 
 import Expect exposing (Expectation)
-import Fraction exposing (Fraction, create, supportedMinInt)
+import Fraction exposing (Fraction, create, minimumSupportedInt)
 import Fuzz exposing (Fuzzer)
 import Ordering
 import Random
@@ -53,14 +53,14 @@ fuzz4 fuzzer1 fuzzer2 fuzzer3 fuzzer4 description expectation =
 allSupportedDenominatorInts : Fuzzer Int
 allSupportedDenominatorInts =
     Fuzz.oneOf
-        [ Fuzz.intRange supportedMinInt -1
+        [ Fuzz.intRange minimumSupportedInt -1
         , Fuzz.intRange 1 Random.maxInt
         ]
 
 
 allSupportedNumeratorInts : Fuzzer Int
 allSupportedNumeratorInts =
-    Fuzz.intRange supportedMinInt Random.maxInt
+    Fuzz.intRange minimumSupportedInt Random.maxInt
 
 
 validFractionFuzz : String -> (Int -> Int -> Expectation) -> Test
@@ -421,7 +421,7 @@ fractionModule =
                     0
               in
               fuzz3
-                (Fuzz.intRange supportedMinInt middleNum)
+                (Fuzz.intRange minimumSupportedInt middleNum)
                 (Fuzz.intRange (middleNum + 1) Random.maxInt)
                 (Fuzz.intRange 1 Random.maxInt)
                 "Fraction.compareFractions should correctly compare a larger and smaller fraction"
