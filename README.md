@@ -24,8 +24,12 @@ Fraction.createUnsafe 5 4
     |> Fraction.getDenominator -- 3
 
 
-
 Fraction.convertToSameDenominator
     (Fraction.createUnsafe 2 3)
     (Fraction.createUnsafe 3 5) -- (Fraction 10 15, Fraction 9 15)
+
+
+Fraction.divide
+    (Fraction.createUnsafe 34 77)
+    (Fraction.createUnsafe 23 387) -- Just (Fraction 13158 1771)
 ```
