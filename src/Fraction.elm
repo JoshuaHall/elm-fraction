@@ -188,24 +188,10 @@ divide fraction1 fraction2 =
 
 -}
 add : Fraction -> Fraction -> Fraction
-add fraction1 fraction2 =
-    let
-        denominator1 =
-            getDenominator fraction1
-
-        denominator2 =
-            getDenominator fraction2
-    in
-    if denominator1 |> isDivisibleBy denominator2 then
-        fractionCleanlyDivisibleAdd fraction1 fraction2
-
-    else if denominator2 |> isDivisibleBy denominator1 then
-        fractionCleanlyDivisibleAdd fraction2 fraction1
-
-    else
-        Fraction
-            ((getNumerator fraction1 * denominator2) + (getNumerator fraction2 * denominator1))
-            (lcm denominator1 denominator2)
+add (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
+    Fraction
+        ((numerator1 * denominator2) + (numerator2 * denominator1))
+        (lcm denominator1 denominator2)
 
 
 {-| Subtracts two fractions to get their difference. Does no simplification of the result.
@@ -214,14 +200,10 @@ add fraction1 fraction2 =
 
 -}
 subtract : Fraction -> Fraction -> Fraction
-subtract fraction1 fraction2 =
-    let
-        ( Fraction numerator1 denominator1, Fraction numerator2 _ ) =
-            convertToSameDenominator fraction1 fraction2
-    in
+subtract (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
     Fraction
         (numerator1 - numerator2)
-        denominator1
+        (lcm denominator1 denominator2)
 
 
 {-| Gets the floating point representation of the fraction.
@@ -234,11 +216,13 @@ fractionToFloat (Fraction numerator denominator) =
     toFloat numerator / toFloat denominator
 
 
-{-| Checks if a fraction is a whole number.
+{-| Checks if a fraction is a whole number. Simplifies the input, then checks if the denominator is 1.
 
     isWholeNumber (Fraction 5 3) == False
 
     isWholeNumber (Fraction 8 1) == True
+
+    isWholeNumber (Fraction 8 2) == True
 
 -}
 isWholeNumber : Fraction -> Bool
@@ -323,7 +307,17 @@ order fraction1 fraction2 =
 -}
 equal : Fraction -> Fraction -> Bool
 equal fraction1 fraction2 =
-    order fraction1 fraction2 == EQ
+    let
+        ( frac1, frac2 ) =
+            convertToSameDenominator fraction1 fraction2
+
+        fraction1Numerator =
+            getNumerator frac1
+
+        fraction2Numerator =
+            getNumerator frac2
+    in
+    fraction1Numerator == fraction2Numerator
 
 
 {-| Sorts a list of fractions.
@@ -362,7 +356,9 @@ convertToSameDenominator fraction1 fraction2 =
             denominatorLcm =
                 lcm denominator1 denominator2
         in
-        ( Fraction (getNumerator fraction1 * denominator2) denominatorLcm, Fraction (getNumerator fraction2 * denominator1) denominatorLcm )
+        ( Fraction (getNumerator fraction1 * denominator2) denominatorLcm
+        , Fraction (getNumerator fraction2 * denominator1) denominatorLcm
+        )
 
 
 {-| Similar to `convertToSameDenominator`, but is ideal for use cases involving 3+ fractions.
@@ -385,18 +381,6 @@ convertAllToSameDenominator fractions =
 
 
 -- HELPERS
-
-
-fractionCleanlyDivisibleAdd : Fraction -> Fraction -> Fraction
-fractionCleanlyDivisibleAdd (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
-    Fraction
-        (numerator1 + (numerator2 * (denominator1 // denominator2)))
-        denominator1
-
-
-isDivisibleBy : Int -> Int -> Bool
-isDivisibleBy num1 num2 =
-    modBy num1 num2 == 0
 
 
 {-| Takes the LCM of multiple numbers (ideal for 3+ numbers).

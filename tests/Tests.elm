@@ -45,7 +45,7 @@ fuzz4 fuzzer1 fuzzer2 fuzzer3 fuzzer4 description expectation =
 
 
 
--- SPECIFIC TEST HELPERS
+-- SPECIFIC LIBRARY TEST HELPERS
 
 
 {-| All ints from [-maxInt, -1] and [1, maxInt]
@@ -66,6 +66,15 @@ allSupportedNumeratorInts =
 validFractionFuzz : String -> (Int -> Int -> Expectation) -> Test
 validFractionFuzz =
     fuzz2 allSupportedNumeratorInts allSupportedDenominatorInts
+
+
+validTwoFractionFuzz : String -> (Int -> Int -> Int -> Int -> Expectation) -> Test
+validTwoFractionFuzz =
+    fuzz4
+        allSupportedNumeratorInts
+        allSupportedDenominatorInts
+        allSupportedNumeratorInts
+        allSupportedDenominatorInts
 
 
 fractionExpectation : Int -> Int -> (Fraction -> Expectation) -> Expectation
@@ -104,8 +113,8 @@ twoFractionExpectation numerator1 denominator1 numerator2 denominator2 twoFracEx
 testsModule : Test
 testsModule =
     describe "The Tests module"
-        [ describe "Tests.allSupportedIntsButZero"
-            [ fuzz allSupportedDenominatorInts "allSupportedIntsButZero should never return zero" <|
+        [ describe "Tests.allSupportedDenominatorInts"
+            [ fuzz allSupportedDenominatorInts "allSupportedDenominatorInts should never return zero" <|
                 \nonZeroInt ->
                     nonZeroInt
                         |> Expect.notEqual 0
@@ -153,28 +162,34 @@ fractionModule =
                         )
             ]
         , describe "Fraction.reciprocal"
-            [ fuzz2 allSupportedDenominatorInts allSupportedDenominatorInts "reciprocal returns the correct value for all non zero numerators and denominators" <|
+            [ test "reciprocal should work with a simple fraction" <|
+                \_ ->
+                    fractionExpectation
+                        2
+                        5
+                        (\frac ->
+                            frac
+                                |> Fraction.reciprocal
+                                |> Maybe.map Fraction.toTuple
+                                |> Expect.equal (Just ( 5, 2 ))
+                        )
+            , fuzz2
+                allSupportedDenominatorInts
+                allSupportedDenominatorInts
+                "reciprocal returns the correct value for all non zero numerators and denominators"
+              <|
                 \numerator denominator ->
                     fractionExpectation
                         numerator
                         denominator
                         (\frac ->
-                            let
-                                reciprocal =
-                                    frac
-                                        |> Fraction.reciprocal
-                            in
-                            case reciprocal of
-                                Just validFrac ->
-                                    validFrac
-                                        |> Fraction.toTuple
-                                        |> swap
-                                        |> Expect.equal (Fraction.toTuple frac)
-
-                                Nothing ->
-                                    Expect.fail "Should always fail"
+                            frac
+                                |> Fraction.reciprocal
+                                |> Maybe.map Fraction.toTuple
+                                |> Maybe.map swap
+                                |> Expect.equal (Just (Fraction.toTuple frac))
                         )
-            , fuzz allSupportedDenominatorInts "reciprocal fails if the numerator of the provided fraction is invalid" <|
+            , fuzz allSupportedDenominatorInts "reciprocal fails if the numerator of the provided fraction is an invalid denominator" <|
                 \denominator ->
                     fractionExpectation
                         Fraction.invalidDenominator
@@ -231,7 +246,20 @@ fractionModule =
                         )
             ]
         , describe "Fraction.multiply"
-            [ fuzz4 allSupportedNumeratorInts allSupportedDenominatorInts allSupportedNumeratorInts allSupportedDenominatorInts "multiply should simply multiply the numerators and the denominators" <|
+            [ test "multiply should work with with some simple fractions" <|
+                \_ ->
+                    twoFractionExpectation
+                        3
+                        4
+                        5
+                        6
+                        (\frac1 frac2 ->
+                            Fraction.multiply frac1 frac2
+                                |> Fraction.simplify
+                                |> Fraction.toTuple
+                                |> Expect.equal ( 5, 8 )
+                        )
+            , validTwoFractionFuzz "multiply should simply multiply the numerators and the denominators" <|
                 \numerator1 denominator1 numerator2 denominator2 ->
                     twoFractionExpectation
                         numerator1
@@ -246,19 +274,7 @@ fractionModule =
                         )
             ]
         , describe "Fraction.divide"
-            [ fuzz3 allSupportedNumeratorInts allSupportedDenominatorInts allSupportedDenominatorInts "divide should fail on fractions whose numerators are equal to zero" <|
-                \numerator1 denominator1 denominator2 ->
-                    twoFractionExpectation
-                        numerator1
-                        denominator1
-                        0
-                        denominator2
-                        (\frac1 frac2 ->
-                            frac2
-                                |> Fraction.divide frac1
-                                |> Expect.equal Nothing
-                        )
-            , test "divide should work on simple fractions" <|
+            [ test "divide should work on simple fractions" <|
                 \_ ->
                     twoFractionExpectation
                         1
@@ -266,15 +282,22 @@ fractionModule =
                         3
                         4
                         (\frac1 frac2 ->
-                            case Fraction.divide frac1 frac2 of
-                                Just validFrac ->
-                                    validFrac
-                                        |> Fraction.simplify
-                                        |> Fraction.toTuple
-                                        |> Expect.equal ( 2, 3 )
-
-                                Nothing ->
-                                    Expect.fail "Should never fail"
+                            Fraction.divide frac1 frac2
+                                |> Maybe.map Fraction.simplify
+                                |> Maybe.map Fraction.toTuple
+                                |> Expect.equal (Just ( 2, 3 ))
+                        )
+            , fuzz3 allSupportedNumeratorInts allSupportedDenominatorInts allSupportedDenominatorInts "divide should fail on fractions whose numerators are equal to zero" <|
+                \numerator1 denominator1 denominator2 ->
+                    twoFractionExpectation
+                        numerator1
+                        denominator1
+                        Fraction.invalidDenominator
+                        denominator2
+                        (\frac1 frac2 ->
+                            frac2
+                                |> Fraction.divide frac1
+                                |> Expect.equal Nothing
                         )
             ]
         , describe "Fraction.add"
@@ -290,13 +313,7 @@ fractionModule =
                                 |> Fraction.toTuple
                                 |> Expect.equal ( 7, 6 )
                         )
-            , fuzz4
-                allSupportedNumeratorInts
-                allSupportedDenominatorInts
-                allSupportedNumeratorInts
-                allSupportedDenominatorInts
-                "add should work with any ordering of the arguments"
-              <|
+            , validTwoFractionFuzz "add should work with any ordering of the arguments" <|
                 \numerator1 denominator1 numerator2 denominator2 ->
                     twoFractionExpectation
                         numerator1
@@ -363,13 +380,7 @@ fractionModule =
                                 |> Fraction.toTuple
                                 |> Expect.equal ( -2, 7 )
                         )
-            , fuzz4
-                allSupportedNumeratorInts
-                allSupportedDenominatorInts
-                allSupportedNumeratorInts
-                allSupportedDenominatorInts
-                "if the order of the fractions is swapped in subtraction, if you negate one result, the two results will be equal"
-              <|
+            , validTwoFractionFuzz "if the order of the fractions is swapped in subtraction, if you negate one result, the two results will be equal" <|
                 \numerator1 denominator1 numerator2 denominator2 ->
                     twoFractionExpectation
                         numerator1
@@ -393,7 +404,7 @@ fractionModule =
                         )
             ]
         , describe "Fraction.isWholeNumber"
-            [ fuzz allSupportedNumeratorInts "isWholeNumber should return True if the denominator is 1" <|
+            [ fuzz allSupportedNumeratorInts "isWholeNumber should return True if the denominator is 1 after simplification" <|
                 \numerator ->
                     fractionExpectation
                         numerator
@@ -463,5 +474,135 @@ fractionModule =
 
                         Nothing ->
                             Expect.fail "If failure, check the fractions in the test definition"
+            ]
+        , describe "Fraction.toTuple"
+            [ test "Should work with a simple fraction" <|
+                \_ ->
+                    fractionExpectation
+                        4
+                        9
+                        (\frac ->
+                            frac
+                                |> Fraction.toTuple
+                                |> Expect.equal ( 4, 9 )
+                        )
+            , validFractionFuzz "Should work with any valid input" <|
+                \numerator denominator ->
+                    fractionExpectation
+                        numerator
+                        denominator
+                        (\frac ->
+                            frac
+                                |> Fraction.toTuple
+                                |> Expect.equal ( numerator, denominator )
+                        )
+            ]
+        , describe "Fraction.equal"
+            [ test "equal should work with some simple fractions" <|
+                \_ ->
+                    twoFractionExpectation
+                        3
+                        4
+                        75
+                        100
+                        (\frac1 frac2 ->
+                            Fraction.equal frac1 frac2
+                                |> Expect.true "3/4 is equal to 75/100"
+                        )
+            , test "equal should return false when provided unequal fractions" <|
+                \_ ->
+                    twoFractionExpectation
+                        3
+                        4
+                        76
+                        100
+                        (\frac1 frac2 ->
+                            Fraction.equal frac1 frac2
+                                |> Expect.false "3/4 is not equal to 76/100"
+                        )
+            ]
+        , describe "Fraction.isZero"
+            [ test "isZero should work with a simple fraction" <|
+                \_ ->
+                    fractionExpectation
+                        0
+                        4
+                        (\frac ->
+                            frac
+                                |> Fraction.isZero
+                                |> Expect.true "0/4 is zero"
+                        )
+            , validFractionFuzz "isZero should work for any valid input" <|
+                \numerator denominator ->
+                    fractionExpectation
+                        numerator
+                        denominator
+                        (\frac ->
+                            if Fraction.getNumerator frac == 0 then
+                                frac
+                                    |> Fraction.isZero
+                                    |> Expect.true "0/n is zero"
+
+                            else
+                                frac
+                                    |> Fraction.isZero
+                                    |> Expect.false "(non zero int)/n is not zero"
+                        )
+            ]
+        , describe "Fraction.isOne"
+            [ test "isOne should work with a simple fraction" <|
+                \_ ->
+                    fractionExpectation
+                        4
+                        4
+                        (\frac ->
+                            frac
+                                |> Fraction.isOne
+                                |> Expect.true "4/4 is one"
+                        )
+            , validFractionFuzz "isOne should work for any valid input" <|
+                \numerator denominator ->
+                    fractionExpectation
+                        numerator
+                        denominator
+                        (\frac ->
+                            if Fraction.getNumerator frac == Fraction.getDenominator frac then
+                                frac
+                                    |> Fraction.isOne
+                                    |> Expect.true "n/n is one"
+
+                            else
+                                frac
+                                    |> Fraction.isOne
+                                    |> Expect.false "x/y is not one when x != y"
+                        )
+            ]
+        , describe "Fraction.isNegativeOne"
+            [ test "isNegativeOne should work with a simple fraction" <|
+                \_ ->
+                    fractionExpectation
+                        4
+                        -4
+                        (\frac ->
+                            frac
+                                |> Fraction.isNegativeOne
+                                |> Expect.true "4/-4 is negative one"
+                        )
+            , validFractionFuzz "isNegativeOne should work for any valid input" <|
+                \numerator denominator ->
+                    fractionExpectation
+                        numerator
+                        denominator
+                        (\frac ->
+                            if negate (Fraction.getNumerator frac) == Fraction.getDenominator frac then
+                                frac
+                                    |> Fraction.isNegativeOne
+                                    |> Expect.true "-n/n is negative one"
+
+                            else
+                                frac
+                                    |> Fraction.isNegativeOne
+                                    |> Expect.false "x/y is not one when -x != y"
+                        )
             ]
         ]
