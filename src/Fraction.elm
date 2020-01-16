@@ -58,7 +58,7 @@ type Fraction
 
 
 {-| The minimum supported integer that should be used with the Fraction module.
-This is because `negate Random.minInt` is 1 greater than `Random.maxInt`, so Fraction.simplify doesn't work correctly.
+This is because `negate Random.minInt` is 1 greater than `Random.maxInt`, so [`simplify`](#simplify) doesn't work correctly.
 -}
 minimumSupportedInt : Int
 minimumSupportedInt =
@@ -72,7 +72,7 @@ invalidDenominator =
     0
 
 
-{-| Attempts to create a `Fraction`.
+{-| Attempts to create a [`Fraction`](#Fraction).
 
     create 1 2 == Just (Fraction 1 2)
 
@@ -100,7 +100,7 @@ createUnsafe numerator denominator =
     Fraction numerator denominator
 
 
-{-| Attempts to take a pair of ints and make a `Fraction`.
+{-| Attempts to take a pair of ints and make a [`Fraction`](#Fraction).
 -}
 fromTuple : ( Int, Int ) -> Maybe Fraction
 fromTuple ( numerator, denominator ) =
@@ -127,7 +127,7 @@ getDenominator (Fraction _ denominator) =
     denominator
 
 
-{-| Attempts to take the reciprocal of a fraction. This returns a `Maybe` because the
+{-| Attempts to take the reciprocal of a [`Fraction`](#Fraction). This returns a [`Maybe`](https://package.elm-lang.org/packages/elm/core/latest/Maybe) because the
 numerator could be zero and then be swapped to the denominator, which is invalid.
 
     reciprocal (Fraction 3 4) == Just (Fraction 4 3)
@@ -140,7 +140,7 @@ reciprocal (Fraction numerator denominator) =
     create denominator numerator
 
 
-{-| Puts a Fraction in the simplest possible terms.
+{-| Puts a [`Fraction`](#Fraction) in the simplest possible terms.
 
     simplify (Fraction 5 15) == Fraction 1 3
 
@@ -160,7 +160,7 @@ simplify (Fraction numerator denominator) =
         Fraction (negate numerator // numeratorDenominatorGcd) (negate denominator // numeratorDenominatorGcd)
 
 
-{-| Multiplies two fractions to get their product. Does no simplification of the result.
+{-| Multiplies two [`Fraction`](#Fraction)s to get their product. Does no simplification of the result.
 
     multiply (Fraction 2 3) (Fraction 3 4) == Fraction 6 12
 
@@ -170,7 +170,7 @@ multiply (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
     Fraction (numerator1 * numerator2) (denominator1 * denominator2)
 
 
-{-| Divides two fractions to get their quotient. Does no simplification of the result.
+{-| Divides two [`Fraction`](#Fraction)s to get their quotient. Does no simplification of the result.
 
     divide (Fraction 2 3) (Fraction 3 4) == Just (Fraction 8 9)
 
@@ -182,7 +182,7 @@ divide fraction1 fraction2 =
     Maybe.map (multiply fraction1) <| reciprocal fraction2
 
 
-{-| Adds two fractions to get their sum. Does no simplification of the result.
+{-| Adds two [`Fraction`](#Fraction)s to get their sum. Does no simplification of the result.
 
     add (Fraction 2 3) (Fraction 1 2) == Fraction 7 6
 
@@ -194,7 +194,7 @@ add (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
         (lcm denominator1 denominator2)
 
 
-{-| Subtracts two fractions to get their difference. Does no simplification of the result.
+{-| Subtracts two [`Fraction`](#Fraction)s to get their difference. Does no simplification of the result.
 
     subtract (Fraction 5 9) (Fraction 1 2) == Fraction 1 18
 
@@ -206,7 +206,7 @@ subtract (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
         (lcm denominator1 denominator2)
 
 
-{-| Gets the floating point representation of the fraction.
+{-| Gets the floating point representation of the [`Fraction`](#Fraction).
 
     fractionToFloat (Fraction 1 2) == 0.5
 
@@ -216,7 +216,7 @@ fractionToFloat (Fraction numerator denominator) =
     toFloat numerator / toFloat denominator
 
 
-{-| Checks if a fraction is a whole number. Simplifies the input, then checks if the denominator is 1.
+{-| Checks if a [`Fraction`](#Fraction) is a whole number.
 
     isWholeNumber (Fraction 5 3) == False
 
@@ -234,7 +234,7 @@ isWholeNumber fraction =
     getDenominator simplified == 1
 
 
-{-| Checks if a fraction is equal to zero.
+{-| Checks if a [`Fraction`](#Fraction) is equal to zero.
 
     isZero (Fraction 43 32) == False
 
@@ -246,7 +246,7 @@ isZero (Fraction numerator _) =
     numerator == 0
 
 
-{-| Checks if a fraction is equal to one.
+{-| Checks if a [`Fraction`](#Fraction) is equal to one.
 
     isOne (Fraction 43 32) == False
 
@@ -258,7 +258,7 @@ isOne (Fraction numerator denominator) =
     numerator == denominator
 
 
-{-| Checks if a fraction is equal to negative one.
+{-| Checks if a [`Fraction`](#Fraction) is equal to negative one.
 
     isNegativeOne (Fraction 43 32) == False
 
@@ -272,7 +272,7 @@ isNegativeOne (Fraction numerator denominator) =
     negate numerator == denominator
 
 
-{-| Rounds a fraction to the nearest integer.
+{-| Rounds a [`Fraction`](#Fraction) to the nearest integer.
 -}
 roundToNearestInt : Fraction -> Int
 roundToNearestInt =
@@ -320,14 +320,14 @@ equal fraction1 fraction2 =
     fraction1Numerator == fraction2Numerator
 
 
-{-| Sorts a list of fractions.
+{-| Sorts a `List` of [`Fraction`](#Fraction)s.
 -}
 sort : List Fraction -> List Fraction
 sort =
     List.sortWith order
 
 
-{-| Converts a fraction to a tuple pair.
+{-| Converts a [`Fraction`](#Fraction) to a tuple pair.
 
     toTuple (Fraction 5 8) == ( 5, 8 )
 
@@ -338,6 +338,12 @@ toTuple (Fraction numerator denominator) =
 
 
 {-| Converts `fraction1` and `fraction2` to the same denominator.
+
+    Maybe.map2
+        (\fraction1 fraction2 -> convertToSameDenominator fraction1 fraction2)
+        (create 1 2)
+        (create 1 3) -- Just (Fraction 3 6, Fraction  2 6)
+
 -}
 convertToSameDenominator : Fraction -> Fraction -> ( Fraction, Fraction )
 convertToSameDenominator fraction1 fraction2 =
@@ -361,7 +367,7 @@ convertToSameDenominator fraction1 fraction2 =
         )
 
 
-{-| Similar to `convertToSameDenominator`, but is ideal for use cases involving 3+ fractions.
+{-| Similar to [`convertToSameDenominator`](#convertToSameDenominator), but is ideal for use cases involving 3+ [`Fraction`](#Fraction)s.
 -}
 convertAllToSameDenominator : List Fraction -> List Fraction
 convertAllToSameDenominator fractions =
