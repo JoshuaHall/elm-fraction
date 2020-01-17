@@ -6,11 +6,11 @@ Examples:
 
 ```elm
 Fraction.create 1 2
-    |> Maybe.map Fraction.fractionToFloat -- Just 0.5
+    |> Maybe.map Fraction.toFloat -- Just 0.5
 
 
 Fraction.create 3 0
-    |> Maybe.map Fraction.fractionToFloat -- Nothing
+    |> Maybe.map Fraction.toFloat -- Nothing
 
 
 Fraction.create 8 32
