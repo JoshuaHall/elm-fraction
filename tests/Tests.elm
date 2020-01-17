@@ -403,6 +403,30 @@ fractionModule =
                                     )
                         )
             ]
+        , describe "Fraction.toFloat"
+            [ test "Fraction.toFloat should work on a basic fraction" <|
+                \_ ->
+                    fractionExpectation
+                        3
+                        4
+                        (\frac ->
+                            frac
+                                |> Fraction.toFloat
+                                |> Expect.within (Expect.Absolute 0.000000001) 0.75
+                        )
+            ]
+        , describe "Fraction.roundToNearestInt"
+            [ test "roundToNearestInt should work on a basic fraction" <|
+                \_ ->
+                    fractionExpectation
+                        8
+                        3
+                        (\frac ->
+                            frac
+                                |> Fraction.roundToNearestInt
+                                |> Expect.equal 3
+                        )
+            ]
         , describe "Fraction.isWholeNumber"
             [ fuzz allSupportedNumeratorInts "isWholeNumber should return True if the denominator is 1 after simplification" <|
                 \numerator ->
@@ -415,8 +439,8 @@ fractionModule =
                                 |> Expect.true "Should always be true"
                         )
             ]
-        , describe "Fraction.compareFractions"
-            [ test "compareFractions should return EQ for equal fractions" <|
+        , describe "Fraction.compare"
+            [ test "compare should return EQ for equal fractions" <|
                 \_ ->
                     twoFractionExpectation
                         1
@@ -424,7 +448,7 @@ fractionModule =
                         2
                         4
                         (\frac1 frac2 ->
-                            Fraction.order frac1 frac2
+                            Fraction.compare frac1 frac2
                                 |> Expect.equal EQ
                         )
             , let
@@ -435,7 +459,7 @@ fractionModule =
                 (Fuzz.intRange minimumSupportedInt middleNum)
                 (Fuzz.intRange (middleNum + 1) Random.maxInt)
                 (Fuzz.intRange 1 Random.maxInt)
-                "Fraction.compareFractions should correctly compare a larger and smaller fraction"
+                "Fraction.compare should correctly compare a larger and smaller fraction"
               <|
                 \lesserNumerator greaterNumerator denominator ->
                     twoFractionExpectation
@@ -444,7 +468,7 @@ fractionModule =
                         greaterNumerator
                         denominator
                         (\lesserFrac greaterFrac ->
-                            Fraction.order lesserFrac greaterFrac
+                            Fraction.compare lesserFrac greaterFrac
                                 |> Expect.equal LT
                         )
             ]

@@ -4,8 +4,8 @@ module Fraction exposing
     , create, createUnsafe, fromTuple
     , getNumerator, getDenominator, isWholeNumber, isZero, isOne, isNegativeOne
     , reciprocal, simplify, add, subtract, multiply, divide
-    , order, equal, sort
-    , convertToSameDenominator, convertAllToSameDenominator, fractionToFloat, roundToNearestInt, toTuple
+    , compare, equal, sort
+    , convertToSameDenominator, convertAllToSameDenominator, toFloat, roundToNearestInt, toTuple
     )
 
 {-| This library provides a safe and simple API to deal with fractions.
@@ -38,12 +38,12 @@ module Fraction exposing
 
 # Comparing Fractions
 
-@docs order, equal, sort
+@docs compare, equal, sort
 
 
 # Converting Fractions
 
-@docs convertToSameDenominator, convertAllToSameDenominator, fractionToFloat, roundToNearestInt, toTuple
+@docs convertToSameDenominator, convertAllToSameDenominator, toFloat, roundToNearestInt, toTuple
 
 -}
 
@@ -208,12 +208,12 @@ subtract (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
 
 {-| Gets the floating point representation of the [`Fraction`](#Fraction).
 
-    fractionToFloat (Fraction 1 2) == 0.5
+    Fraction.toFloat (Fraction 1 2) == 0.5
 
 -}
-fractionToFloat : Fraction -> Float
-fractionToFloat (Fraction numerator denominator) =
-    toFloat numerator / toFloat denominator
+toFloat : Fraction -> Float
+toFloat (Fraction numerator denominator) =
+    Basics.toFloat numerator / Basics.toFloat denominator
 
 
 {-| Checks if a [`Fraction`](#Fraction) is a whole number.
@@ -276,13 +276,13 @@ isNegativeOne (Fraction numerator denominator) =
 -}
 roundToNearestInt : Fraction -> Int
 roundToNearestInt =
-    fractionToFloat >> round
+    toFloat >> round
 
 
 {-| Returns how `fraction1` compares to `fraction2`.
 -}
-order : Fraction -> Fraction -> Order
-order fraction1 fraction2 =
+compare : Fraction -> Fraction -> Order
+compare fraction1 fraction2 =
     let
         ( frac1, frac2 ) =
             convertToSameDenominator fraction1 fraction2
@@ -324,7 +324,7 @@ equal fraction1 fraction2 =
 -}
 sort : List Fraction -> List Fraction
 sort =
-    List.sortWith order
+    List.sortWith compare
 
 
 {-| Converts a [`Fraction`](#Fraction) to a tuple pair.
