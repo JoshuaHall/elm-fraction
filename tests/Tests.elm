@@ -313,6 +313,30 @@ fractionModule =
                                 |> Fraction.toTuple
                                 |> Expect.equal ( 7, 6 )
                         )
+            , test "should add a positive fraction and a negative fraction together correctly" <|
+                \_ ->
+                    twoFractionExpectation
+                        4
+                        5
+                        -3
+                        5
+                        (\frac1 frac2 ->
+                            Fraction.add frac1 frac2
+                                |> Fraction.toTuple
+                                |> Expect.equal ( 1, 5 )
+                        )
+            , test "should add a negative fraction and a negative fraction together correctly" <|
+                \_ ->
+                    twoFractionExpectation
+                        -7
+                        9
+                        -5
+                        4
+                        (\frac1 frac2 ->
+                            Fraction.add frac1 frac2
+                                |> Fraction.toTuple
+                                |> Expect.equal ( -73, 36 )
+                        )
             , validTwoFractionFuzz "add should work with any ordering of the arguments" <|
                 \numerator1 denominator1 numerator2 denominator2 ->
                     twoFractionExpectation
@@ -355,6 +379,18 @@ fractionModule =
                             Fraction.subtract frac1 frac2
                                 |> Fraction.toTuple
                                 |> Expect.equal ( 1, 6 )
+                        )
+            , test "subtract should work with simple negative fractions" <|
+                \_ ->
+                    twoFractionExpectation
+                        4
+                        5
+                        -3
+                        5
+                        (\frac1 frac2 ->
+                            Fraction.subtract frac1 frac2
+                                |> Fraction.toTuple
+                                |> Expect.equal ( 7, 5 )
                         )
             , test "subtract should work with cleanly divisible denominators" <|
                 \_ ->

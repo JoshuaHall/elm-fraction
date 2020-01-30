@@ -189,9 +189,13 @@ divide fraction1 fraction2 =
 -}
 add : Fraction -> Fraction -> Fraction
 add (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
-    Fraction
-        ((numerator1 * denominator2) + (numerator2 * denominator1))
-        (lcm denominator1 denominator2)
+    if denominator1 == denominator2 then
+        Fraction (numerator1 + numerator2) denominator1
+
+    else
+        Fraction
+            ((numerator1 * denominator2) + (numerator2 * denominator1))
+            (lcm denominator1 denominator2)
 
 
 {-| Subtracts two [`Fraction`](#Fraction)s to get their difference. Does no simplification of the result.
