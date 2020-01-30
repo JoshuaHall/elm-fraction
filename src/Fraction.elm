@@ -188,14 +188,14 @@ divide fraction1 fraction2 =
 
 -}
 add : Fraction -> Fraction -> Fraction
-add (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
-    if denominator1 == denominator2 then
-        Fraction (numerator1 + numerator2) denominator1
-
-    else
-        Fraction
-            ((numerator1 * denominator2) + (numerator2 * denominator1))
-            (lcm denominator1 denominator2)
+add fraction1 fraction2 =
+    let
+        ( Fraction numerator1 denominator1, Fraction numerator2 _ ) =
+            convertToSameDenominator fraction1 fraction2
+    in
+    Fraction
+        (numerator1 + numerator2)
+        denominator1
 
 
 {-| Subtracts two [`Fraction`](#Fraction)s to get their difference. Does no simplification of the result.
@@ -204,10 +204,14 @@ add (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
 
 -}
 subtract : Fraction -> Fraction -> Fraction
-subtract (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
+subtract fraction1 fraction2 =
+    let
+        ( Fraction numerator1 denominator1, Fraction numerator2 _ ) =
+            convertToSameDenominator fraction1 fraction2
+    in
     Fraction
         (numerator1 - numerator2)
-        (lcm denominator1 denominator2)
+        denominator1
 
 
 {-| Gets the floating point representation of the [`Fraction`](#Fraction).
@@ -366,8 +370,8 @@ convertToSameDenominator fraction1 fraction2 =
             denominatorLcm =
                 lcm denominator1 denominator2
         in
-        ( Fraction (getNumerator fraction1 * denominator2) denominatorLcm
-        , Fraction (getNumerator fraction2 * denominator1) denominatorLcm
+        ( Fraction (getNumerator fraction1 * (denominatorLcm // denominator1)) denominatorLcm
+        , Fraction (getNumerator fraction2 * (denominatorLcm // denominator2)) denominatorLcm
         )
 
 

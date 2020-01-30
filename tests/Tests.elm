@@ -392,6 +392,18 @@ fractionModule =
                                 |> Fraction.toTuple
                                 |> Expect.equal ( 7, 5 )
                         )
+            , test "subtract should work with simple negative fractions 2" <|
+                \_ ->
+                    twoFractionExpectation
+                        1
+                        5
+                        -9
+                        10
+                        (\frac1 frac2 ->
+                            Fraction.subtract frac1 frac2
+                                |> Fraction.toTuple
+                                |> Expect.equal ( 11, 10 )
+                        )
             , test "subtract should work with cleanly divisible denominators" <|
                 \_ ->
                     twoFractionExpectation
@@ -555,6 +567,20 @@ fractionModule =
                             frac
                                 |> Fraction.toTuple
                                 |> Expect.equal ( numerator, denominator )
+                        )
+            ]
+        , describe "Fraction.convertToSameDenominator"
+            [ test "should work with two simple fractions" <|
+                \_ ->
+                    twoFractionExpectation
+                        1
+                        5
+                        -9
+                        10
+                        (\frac1 frac2 ->
+                            Fraction.convertToSameDenominator frac1 frac2
+                                |> Tuple.mapBoth Fraction.toTuple Fraction.toTuple
+                                |> Expect.equal ( ( 2, 10 ), ( -9, 10 ) )
                         )
             ]
         , describe "Fraction.equal"
