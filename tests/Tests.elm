@@ -428,7 +428,14 @@ fractionModule =
                                 |> Fraction.toTuple
                                 |> Expect.equal ( -2, 7 )
                         )
-            , validTwoFractionFuzz "if the order of the fractions is swapped in subtraction, if you negate one result, the two results will be equal" <|
+            , let
+                numeratorRange =
+                    Fuzz.intRange -5000 5000
+
+                denominatorRange =
+                    Fuzz.oneOf [ Fuzz.intRange -5000 -1, Fuzz.intRange 1 5000 ]
+              in
+              fuzz4 numeratorRange denominatorRange numeratorRange denominatorRange "if the order of the fractions is swapped in subtraction, if you negate one result, the two results will be equal" <|
                 \numerator1 denominator1 numerator2 denominator2 ->
                     twoFractionExpectation
                         numerator1
@@ -442,13 +449,14 @@ fractionModule =
                                         |> Fraction.simplify
                                         |> Fraction.toTuple
                                         |> Tuple.mapFirst negate
-                            in
-                            firstResult
-                                |> Expect.equal
-                                    (Fraction.subtract frac2 frac1
+
+                                secondResult =
+                                    Fraction.subtract frac2 frac1
                                         |> Fraction.simplify
                                         |> Fraction.toTuple
-                                    )
+                            in
+                            firstResult
+                                |> Expect.equal secondResult
                         )
             ]
         , describe "Fraction.toFloat"
@@ -498,6 +506,28 @@ fractionModule =
                         (\frac1 frac2 ->
                             Fraction.compare frac1 frac2
                                 |> Expect.equal EQ
+                        )
+            , test "compare should return LT when frac1 < frac2" <|
+                \_ ->
+                    twoFractionExpectation
+                        3
+                        7
+                        8
+                        9
+                        (\frac1 frac2 ->
+                            Fraction.compare frac1 frac2
+                                |> Expect.equal LT
+                        )
+            , test "compare should return GT when frac1 > frac2" <|
+                \_ ->
+                    twoFractionExpectation
+                        6
+                        5
+                        2
+                        3
+                        (\frac1 frac2 ->
+                            Fraction.compare frac1 frac2
+                                |> Expect.equal GT
                         )
             , let
                 middleNum =
