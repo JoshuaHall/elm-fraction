@@ -44,6 +44,14 @@ fuzz4 fuzzer1 fuzzer2 fuzzer3 fuzzer4 description expectation =
         )
 
 
+intRangeWithout : Int -> Int -> Int -> Fuzzer Int
+intRangeWithout missingValue low high =
+    Fuzz.oneOf
+        [ Fuzz.intRange low (missingValue - 1)
+        , Fuzz.intRange (missingValue + 1) high
+        ]
+
+
 
 -- SPECIFIC LIBRARY TEST HELPERS
 
@@ -52,10 +60,7 @@ fuzz4 fuzzer1 fuzzer2 fuzzer3 fuzzer4 description expectation =
 -}
 allSupportedDenominatorInts : Fuzzer Int
 allSupportedDenominatorInts =
-    Fuzz.oneOf
-        [ Fuzz.intRange minimumSupportedInt -1
-        , Fuzz.intRange 1 Random.maxInt
-        ]
+    intRangeWithout 0 minimumSupportedInt Random.maxInt
 
 
 allSupportedNumeratorInts : Fuzzer Int
@@ -433,7 +438,7 @@ fractionModule =
                     Fuzz.intRange -5000 5000
 
                 denominatorRange =
-                    Fuzz.oneOf [ Fuzz.intRange -5000 -1, Fuzz.intRange 1 5000 ]
+                    intRangeWithout 0 -5000 5000
               in
               fuzz4 numeratorRange denominatorRange numeratorRange denominatorRange "if the order of the fractions is swapped in subtraction, if you negate one result, the two results will be equal" <|
                 \numerator1 denominator1 numerator2 denominator2 ->
