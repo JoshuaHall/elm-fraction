@@ -132,14 +132,37 @@ testsModule =
 fractionModule : Test
 fractionModule =
     describe "The Fraction module"
-        [ describe "Fraction.fraction"
-            [ validFractionFuzz "fraction should work for all denominators that are valid" <|
+        [ describe "Fraction.invalidDenominator"
+            [ fuzz allSupportedNumeratorInts "If an invalid denominator is passed, Fraction creation will always fail, regardless of the numerator" <|
+                \numerator ->
+                    create numerator Fraction.invalidDenominator
+                        |> Expect.equal Nothing
+            ]
+        , describe "Fraction.create"
+            [ validFractionFuzz "create should work for all denominators that are valid" <|
                 \numerator denominator ->
                     create numerator denominator
                         |> Expect.notEqual Nothing
-            , fuzz allSupportedNumeratorInts "fraction should always fail if the denominator is invalid" <|
+            , fuzz allSupportedNumeratorInts "create should always fail if the denominator is invalid" <|
                 \numerator ->
                     create numerator Fraction.invalidDenominator
+                        |> Expect.equal Nothing
+            ]
+        , describe "Fraction.createUnsafe"
+            [ validFractionFuzz "createUnsafe should work as expected for valid input" <|
+                \numerator denominator ->
+                    Fraction.createUnsafe numerator denominator
+                        |> Fraction.getDenominator
+                        |> Expect.notEqual Fraction.invalidDenominator
+            ]
+        , describe "Fraction.fromTuple"
+            [ validFractionFuzz "fromTuple should work for all denominators that are valid" <|
+                \numerator denominator ->
+                    Fraction.fromTuple ( numerator, denominator )
+                        |> Expect.notEqual Nothing
+            , fuzz allSupportedNumeratorInts "create should always fail if the denominator is invalid" <|
+                \numerator ->
+                    Fraction.fromTuple ( numerator, Fraction.invalidDenominator )
                         |> Expect.equal Nothing
             ]
         , describe "Fraction.getNumerator"
@@ -181,7 +204,7 @@ fractionModule =
             , fuzz2
                 allSupportedDenominatorInts
                 allSupportedDenominatorInts
-                "reciprocal returns the correct value for all non zero numerators and denominators"
+                "reciprocal returns the correct value for all supported numerators and denominators"
               <|
                 \numerator denominator ->
                     fractionExpectation
@@ -237,6 +260,36 @@ fractionModule =
                                 |> Fraction.simplify
                                 |> Fraction.toTuple
                                 |> Expect.equal ( 3, 7 )
+                        )
+            , let
+                validNegativeNumber =
+                    Fuzz.intRange minimumSupportedInt -1
+              in
+              fuzz2 validNegativeNumber validNegativeNumber "simplify should return fractions with a negative numerator and denominator with a positive numerator" <|
+                \numerator denominator ->
+                    fractionExpectation
+                        numerator
+                        denominator
+                        (\frac ->
+                            frac
+                                |> Fraction.simplify
+                                |> Fraction.getNumerator
+                                |> Expect.greaterThan 0
+                        )
+            , let
+                validNegativeNumber =
+                    Fuzz.intRange minimumSupportedInt -1
+              in
+              fuzz2 validNegativeNumber validNegativeNumber "simplify should return fractions with a negative numerator and denominator with a positive denominator" <|
+                \numerator denominator ->
+                    fractionExpectation
+                        numerator
+                        denominator
+                        (\frac ->
+                            frac
+                                |> Fraction.simplify
+                                |> Fraction.getDenominator
+                                |> Expect.greaterThan 0
                         )
             , validFractionFuzz "simplify should always make the denominator positive" <|
                 \numerator denominator ->
@@ -580,7 +633,7 @@ fractionModule =
                                 |> Expect.true "Should order the fractions correctly"
 
                         Nothing ->
-                            Expect.fail "If failure, check the fractions in the test definition"
+                            Expect.fail "If this failed, check the fractions in the test definition"
             ]
         , describe "Fraction.toTuple"
             [ test "Should work with a simple fraction" <|
@@ -605,7 +658,7 @@ fractionModule =
                         )
             ]
         , describe "Fraction.convertToSameDenominator"
-            [ test "should work with two simple fractions" <|
+            [ test "convertToSameDenominator should work with two simple fractions" <|
                 \_ ->
                     twoFractionExpectation
                         1
@@ -616,6 +669,18 @@ fractionModule =
                             Fraction.convertToSameDenominator frac1 frac2
                                 |> Tuple.mapBoth Fraction.toTuple Fraction.toTuple
                                 |> Expect.equal ( ( 2, 10 ), ( -9, 10 ) )
+                        )
+            , test "convertToSameDenominator should work with two simple fractions 2" <|
+                \_ ->
+                    twoFractionExpectation
+                        1
+                        2
+                        1
+                        3
+                        (\frac1 frac2 ->
+                            Fraction.convertToSameDenominator frac1 frac2
+                                |> Tuple.mapBoth Fraction.toTuple Fraction.toTuple
+                                |> Expect.equal ( ( 3, 6 ), ( 2, 6 ) )
                         )
             ]
         , describe "Fraction.equal"

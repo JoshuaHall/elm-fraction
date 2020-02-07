@@ -236,10 +236,10 @@ toFloat (Fraction numerator denominator) =
 isWholeNumber : Fraction -> Bool
 isWholeNumber fraction =
     let
-        simplified =
+        (Fraction _ denominator) =
             simplify fraction
     in
-    getDenominator simplified == 1
+    denominator == 1
 
 
 {-| Checks if a [`Fraction`](#Fraction) is equal to zero.
@@ -292,19 +292,13 @@ roundToNearestInt =
 compare : Fraction -> Fraction -> Order
 compare fraction1 fraction2 =
     let
-        ( frac1, frac2 ) =
+        ( Fraction numerator1 _, Fraction numerator2 _ ) =
             convertToSameDenominator fraction1 fraction2
-
-        fraction1Numerator =
-            getNumerator frac1
-
-        fraction2Numerator =
-            getNumerator frac2
     in
-    if fraction1Numerator > fraction2Numerator then
+    if numerator1 > numerator2 then
         GT
 
-    else if fraction1Numerator == fraction2Numerator then
+    else if numerator1 == numerator2 then
         EQ
 
     else
@@ -316,16 +310,10 @@ compare fraction1 fraction2 =
 equal : Fraction -> Fraction -> Bool
 equal fraction1 fraction2 =
     let
-        ( frac1, frac2 ) =
+        ( Fraction numerator1 _, Fraction numerator2 _ ) =
             convertToSameDenominator fraction1 fraction2
-
-        fraction1Numerator =
-            getNumerator frac1
-
-        fraction2Numerator =
-            getNumerator frac2
     in
-    fraction1Numerator == fraction2Numerator
+    numerator1 == numerator2
 
 
 {-| Sorts a `List` of [`Fraction`](#Fraction)s.
@@ -380,11 +368,10 @@ convertToSameDenominator fraction1 fraction2 =
 convertAllToSameDenominator : List Fraction -> List Fraction
 convertAllToSameDenominator fractions =
     let
-        denominators =
-            List.map (\(Fraction _ denominator) -> denominator) fractions
-
         lcmDenominator =
-            lcmMultipleNumbers denominators
+            fractions
+                |> List.map getDenominator
+                |> lcmMultipleNumbers
     in
     fractions
         |> List.map
