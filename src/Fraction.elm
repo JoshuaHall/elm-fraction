@@ -1,7 +1,7 @@
 module Fraction exposing
     ( Fraction
     , invalidDenominator, minimumSupportedInt
-    , create, createUnsafe, fromTuple
+    , create, FractionCreationError(..), createWithFeedback, createUnsafe, fromTuple
     , getNumerator, getDenominator, isWholeNumber, isZero, isOne, isNegativeOne
     , reciprocal, simplify, add, subtract, multiply, divide
     , compare, equal, sort
@@ -23,7 +23,7 @@ module Fraction exposing
 
 # Fraction Creation
 
-@docs create, createUnsafe, fromTuple
+@docs create, FractionCreationError, createWithFeedback, createUnsafe, fromTuple
 
 
 # Fraction Information
@@ -81,11 +81,36 @@ invalidDenominator =
 -}
 create : Int -> Int -> Maybe Fraction
 create numerator denominator =
-    if denominator == invalidDenominator || numerator < minimumSupportedInt || denominator < minimumSupportedInt then
-        Nothing
+    Result.toMaybe <| createWithFeedback numerator denominator
+
+
+{-| Provides feedback based on the error for the user when creating a fraction.
+-}
+type FractionCreationError
+    = NumeratorError String
+    | DenominatorError String
+
+
+{-| Attempts to create a [`Fraction`](#Fraction).
+
+    create 1 2 == Ok (Fraction 1 2)
+
+    create 1 0 == Err (DenominatorError "Invalid denominator.")
+
+-}
+createWithFeedback : Int -> Int -> Result FractionCreationError Fraction
+createWithFeedback numerator denominator =
+    if denominator == invalidDenominator then
+        Err <| DenominatorError "Invalid denominator."
+
+    else if numerator < minimumSupportedInt then
+        Err <| NumeratorError <| "Numerator is below " ++ String.fromInt minimumSupportedInt ++ "."
+
+    else if denominator < minimumSupportedInt then
+        Err <| DenominatorError <| "Denominator is below " ++ String.fromInt minimumSupportedInt ++ "."
 
     else
-        Just <| Fraction numerator denominator
+        Ok <| Fraction numerator denominator
 
 
 {-| **WARNING**: This should be used as a last resort. This is intended for use with integer literals, not with user input.

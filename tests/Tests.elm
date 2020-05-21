@@ -1,7 +1,7 @@
 module Tests exposing (fractionModule, testsModule)
 
 import Expect exposing (Expectation)
-import Fraction exposing (Fraction, create, minimumSupportedInt)
+import Fraction exposing (Fraction, FractionCreationError(..), create, createWithFeedback, minimumSupportedInt)
 import Fuzz exposing (Fuzzer)
 import Ordering
 import Random
@@ -147,6 +147,28 @@ fractionModule =
                 \numerator ->
                     create numerator Fraction.invalidDenominator
                         |> Expect.equal Nothing
+            ]
+        , describe "Fraction.createWithFeedback"
+            [ test "createWithFeedback should fail with a descriptive error message when given an invalid denominator" <|
+                \_ ->
+                    createWithFeedback 3 0
+                        |> Expect.equal (Err (DenominatorError "Invalid denominator."))
+            , test "createWithFeedback should fail with a descriptive error message when given an out of range numerator" <|
+                \_ ->
+                    createWithFeedback (minimumSupportedInt - 1) 1
+                        |> Expect.equal (Err (NumeratorError ("Numerator is below " ++ String.fromInt minimumSupportedInt ++ ".")))
+            , test "createWithFeedback should fail with a descriptive error message when given an out of range denominator" <|
+                \_ ->
+                    createWithFeedback 1 (minimumSupportedInt - 1)
+                        |> Expect.equal (Err (DenominatorError ("Denominator is below " ++ String.fromInt minimumSupportedInt ++ ".")))
+            , validFractionFuzz "createWithFeedback should work for all denominators that are valid" <|
+                \numerator denominator ->
+                    createWithFeedback numerator denominator
+                        |> Expect.ok
+            , fuzz allSupportedNumeratorInts "createWithFeedback should always fail if the denominator is invalid" <|
+                \numerator ->
+                    createWithFeedback numerator Fraction.invalidDenominator
+                        |> Expect.err
             ]
         , describe "Fraction.createUnsafe"
             [ validFractionFuzz "createUnsafe should work as expected for valid input" <|
