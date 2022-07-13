@@ -4,7 +4,7 @@ module Fraction exposing
     , create, FractionCreationError(..), createWithFeedback, createUnsafe, fromTuple
     , getNumerator, getDenominator, isWholeNumber, isZero, isOne, isNegativeOne
     , reciprocal, simplify, add, subtract, multiply, divide
-    , compare, equal, sort
+    , compare, equal, exactlyEqual, sort
     , convertToSameDenominator, convertAllToSameDenominator, toFloat, roundToNearestInt, toTuple
     )
 
@@ -38,7 +38,7 @@ module Fraction exposing
 
 # Comparing Fractions
 
-@docs compare, equal, sort
+@docs compare, equal, exactlyEqual, sort
 
 
 # Converting Fractions
@@ -339,6 +339,13 @@ equal fraction1 fraction2 =
             convertToSameDenominator fraction1 fraction2
     in
     numerator1 == numerator2
+
+
+{-| Checks if `fraction1` is exactly equal to `fraction2`.
+-}
+exactlyEqual : Fraction -> Fraction -> Bool
+exactlyEqual (Fraction numerator1 denominator1) (Fraction numerator2 denominator2) =
+    numerator1 == numerator2 && denominator1 == denominator2
 
 
 {-| Sorts a `List` of [`Fraction`](#Fraction)s.

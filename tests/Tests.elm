@@ -728,6 +728,60 @@ fractionModule =
                             Fraction.equal frac1 frac2
                                 |> Expect.false "3/4 is not equal to 76/100"
                         )
+            , validFractionFuzz "equal should always work for a fraction that is multiplied by 1" <|
+                \numerator denominator ->
+                    twoFractionExpectation
+                        numerator
+                        denominator
+                        2
+                        2
+                        (\frac1 fracMultiplier ->
+                            let
+                                frac2 =
+                                    Fraction.multiply frac1 fracMultiplier
+                            in
+                            Fraction.equal frac1 frac2
+                                |> Expect.true "Should always be equal because the original fraction is multiplied by 2/2 (equal to 1)"
+                        )
+            , validFractionFuzz "equal should never work for a fraction that is multiplied by something that doesn't simplify to 1" <|
+                \numerator denominator ->
+                    twoFractionExpectation
+                        numerator
+                        denominator
+                        3
+                        2
+                        (\frac1 fracMultiplier ->
+                            let
+                                frac2 =
+                                    Fraction.multiply frac1 fracMultiplier
+                            in
+                            Fraction.equal frac1 frac2
+                                |> Expect.false "Should never be equal because the original fraction is multiplied by 3/2 (NOT equal to 1)"
+                        )
+            ]
+        , describe "Fraction.exactlyEqual"
+            [ test "exactlyEqual should work with some simple fractions" <|
+                \_ ->
+                    twoFractionExpectation
+                        3
+                        4
+                        3
+                        4
+                        (\frac1 frac2 ->
+                            Fraction.exactlyEqual frac1 frac2
+                                |> Expect.true "3/4 is exactly equal to 3/4"
+                        )
+            , test "exactlyEqual should fail when given fractions that are 'equal' but not exactly equal" <|
+                \_ ->
+                    twoFractionExpectation
+                        3
+                        4
+                        6
+                        8
+                        (\frac1 frac2 ->
+                            Fraction.exactlyEqual frac1 frac2
+                                |> Expect.false "3/4 is not exactly equal to 12/16"
+                        )
             ]
         , describe "Fraction.isZero"
             [ test "isZero should work with a simple fraction" <|
