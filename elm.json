@@ -3,7 +3,7 @@
     "name": "JoshuaHall/elm-fraction",
     "summary": "This library provides a safe and simple API to deal with fractions.",
     "license": "MIT",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "exposed-modules": [
         "Fraction"
     ],
